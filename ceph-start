@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+ceph osd unset pause
+ceph osd unset nodown
+ceph osd unset norebalance
+ceph osd unset norecover
+ceph osd unset nobackfill
+ceph osd unset noout

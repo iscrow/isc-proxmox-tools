@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+BOND=$1
+BONDFILE="/proc/net/bonding/$BOND"
+DATA=$(<$BONDFILE)
+echo "$DATA"
+
+MODE=$(echo "$DATA" | grep 'Bonding Mode:' | sed -E 's/.*\((.*)\)/\1/g')
+PRIMARY_SLAVE=$(echo "$DATA" | grep 'Primary Slave:' | sed -E 's/[^:]+: (\S+) .*/\1/g')
+PRIMARY_RESELECT=$(echo "$DATA" | grep 'Primary Slave:' | sed -E 's/[^:]+: (\S+) \((.*)\)/\2/g')
+ACTIVE_SLAVE=$(echo "$DATA" | grep 'Active Slave:' | sed -E 's/[^:]+: (\S+)/\1/g')
+BOND_STATUS=$(echo "$DATA" | grep 'MII Status:' | head -n 1 | sed -E 's/[^:]+: (\S+)/\1/g')
+
+SLAVE_INTERFACES=$(paste \
+	<(grep 'Slave Interface:' <<< "$DATA" | sed -E 's/[^:]+: (.*)/\1/g') \
+	<(grep 'MII Status:' <<< "$DATA"| tail -n +2 | sed -E 's/[^:]+: (.*)/\1/g') \
+	<(grep 'Speed:' <<< "$DATA" | sed -E 's/[^:]+: ([0-9]+).*/\1/g') \
+	<(grep 'Duplex:' <<< "$DATA" | sed -E 's/[^:]+: (.*)/\1/g') \
+	<(grep 'Link Failure Count:' <<< "$DATA" | sed -E 's/[^:]+: (.*)/\1/g') \
+	<(grep 'Slave queue ID:' <<< "$DATA" | sed -E 's/[^:]+: (.*)/\1/g'))
+
+{
+echo
+echo "MODE: $MODE"
+echo "PRIMARY_SLAVE: $PRIMARY_SLAVE"
+echo "PRIMARY_RESELECT: $PRIMARY_RESELECT"
+echo "ACTIVE_SLAVE: $ACTIVE_SLAVE"
+echo "BOND_STATUS: $BOND_STATUS"
+echo "SLAVE:INTERFACES:"
+echo "$SLAVE_INTERFACES"
+} | colorize red '^\S+' green ': (.*)'

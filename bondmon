@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+TIMEOUT=5
+#watch -c -n 0.1 'timeout $TIMEOUT ceph status; timeout $TIMEOUT ceph osd df; grep . /proc/net/bonding/* | grep -P "ens|Status" | grep --color=always -P "Status: down.*|Primary.*|$"'
+watch -c -n 0.1 " \
+	grep . /proc/net/bonding/* | \
+	grep --color=always -P 'Status: down.*|Primary.*|Active Slave.*|$'"

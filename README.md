@@ -1,6 +1,21 @@
 # isc-proxmox-tools
 A collection of tools that helps me run my proxmox clusters
 
+### bondmon
+Shows a realtime view of your bond interface states from /proc/net/bonding/bond\*.
+
+### bondview
+Shows the state of a particular bond.
+
+### cephmon
+Shows a realtime view of the ceph cluster and bond interfaces state.
+
+### ceph-start
+Start a ceph cluster stopped with **ceph-stop**.
+
+### ceph-stop
+Stop a ceph cluster so cluster can be shutdown. Start back up **with ceph-start**.
+
 ### pve_replicate
 Replicates **the latest vzdump backup for each vm** between file storage destinations. You can run it nightly and copy them to one destination for a nightly replica and weekly to another destination for a weekly replica.
 

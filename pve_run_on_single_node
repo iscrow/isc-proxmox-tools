@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 
-PATH=$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+export PATH=$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 SCRIPT=$(basename "$0")
 LOGDIR="/tmp"
-LOGFILE="$LOGDIR/$ME.log"
-INCOMPLETE_FILE_DAYS=1
+LOGFILE="$LOGDIR/$SCRIPT.log"
 
 COMMAND=$1
 COMMAND_ALL=$*
@@ -29,7 +28,7 @@ log() {
 }
 
 check_lock() {
-	INSTANCES=$(ps aux | grep -v "grep" | grep -P "$SCRIPT .*\/?${COMMAND_BASE} " -c)
+	INSTANCES=$(ps aux | grep -Pv "grep|cron" | grep -P "$SCRIPT .*\/?${COMMAND_BASE} " -c)
 	[ "$INSTANCES" -gt 2 ] && { log "Another instance of $COMMAND already running. Exiting."; exit 1; }
 }
 

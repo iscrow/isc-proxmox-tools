@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+PATH=$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+SCRIPT=$(basename "$0")
+LOGDIR="/tmp"
+LOGFILE="$LOGDIR/$ME.log"
+INCOMPLETE_FILE_DAYS=1
+
+COMMAND=$1
+COMMAND_ALL=$*
+
+COMMAND_BASE=$(awk '{print $1}' <<< "$COMMAND")
+! command -v "${COMMAND_BASE}" &>/dev/null && echo "Cannot find executable ${COMMAND_BASE}. Exiting..." && exit 1
+
+usage() {
+	echo "$SCRIPT runs any command you specify only if the current machine is a PVE node, is in quorum, and has the lowest node ID"
+       	echo "Usage:"
+	echo "  $SCRIPT <command> <param 1> ... <param n>"
+	exit 1
+}
+
+[ -n "$COMMAND" ] || usage
+
+
+log() {
+	local MSG="$(date): $HOSTNAME: $*"
+	[ -z "$*" ] && MSG=""
+	echo "$MSG" | tee -a "$LOGFILE"
+}
+
+check_lock() {
+	INSTANCES=$(ps aux | grep -v "grep" | grep -P "$SCRIPT .*\/?${COMMAND_BASE} " -c)
+	[ "$INSTANCES" -gt 2 ] && { log "Another instance of $COMMAND already running. Exiting."; exit 1; }
+}
+
+sleep_to_avoid_race_condition() {
+	local SLEEP=$(pvecm nodes | awk '/(local)/{print $1}')
+	SLEEP=${SLEEP:-$(( ( RANDOM % 10 ) + 10 ))}
+	log "Sleeping for $SLEEP seconds"
+
+}
+
+check_quorum() {
+	local QUORUM=$(pvecm status | grep -Pi 'Quorate:\s+Yes')
+	[ "$QUORUM" ] || { log "Cluster not quorate. Exiting."; exit 1; }
+}
+
+check_active_node() {
+	local ACTIVE_NODE=$(pvecm nodes | grep -P '^\s+\d+\s+[1-9]' | head -n 1 | grep -ia '(local)')
+	[ "$ACTIVE_NODE" ] || { log "I am not the active node. Exiting."; exit 1; }
+}
+
+
+check_quorum
+check_active_node
+check_lock
+
+$COMMAND_ALL
+

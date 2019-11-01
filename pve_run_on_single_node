@@ -29,7 +29,7 @@ log() {
 
 check_lock() {
 	INSTANCES=$(ps aux | grep -Pv "grep|cron" | grep -P "$SCRIPT .*\/?${COMMAND_BASE} " -c)
-	[ "$INSTANCES" -gt 2 ] && { log "Another instance of $COMMAND already running. Exiting."; exit 1; }
+	[ "$INSTANCES" -gt 4 ] && { log "Another instance of $COMMAND already running. Exiting."; exit 1; }
 }
 
 sleep_to_avoid_race_condition() {
@@ -52,7 +52,8 @@ check_active_node() {
 
 check_quorum
 check_active_node
-check_lock
+# Disabling locking. It does not work well and I'm not sure we should have this here.
+#check_lock
 
 $COMMAND_ALL
 

@@ -24,7 +24,7 @@ usage() {
 log() {
 	local MSG="$(date): $HOSTNAME: $*"
 	[ -z "$*" ] && MSG=""
-	echo "$MSG" | tee -a "$LOGFILE"
+	echo "$MSG" >> "$LOGFILE"
 }
 
 check_lock() {

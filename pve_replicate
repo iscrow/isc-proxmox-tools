@@ -30,7 +30,7 @@ LOGFILE_DST="$DST/$LOGFILE_NAME"
 log() {
 	local MSG="$(date): $HOSTNAME: $*"
 	[ -z "$*" ] && MSG=""
-	echo "$MSG" | tee -a "$LOGFILE_SRC" -a "$LOGFILE_DST"
+	echo "$MSG" | tee -a "$LOGFILE_SRC" -a "$LOGFILE_DST" > /dev/null
 }
 
 check_lock() {

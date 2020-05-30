@@ -79,7 +79,7 @@ validate_backup() {
 }
 
 delete_incomplete_rsync_files() {
-	local INCOMPLETE=$(find $DST/.vzdump-* -type f -mtime +$INCOMPLETE_FILE_DAYS)
+	local INCOMPLETE=$(find $DST/.vzdump-* -type f -mtime +$INCOMPLETE_FILE_DAYS &> /dev/null)
 	for INC_FILE in $INCOMPLETE; do
 		log "Deleting old incomplete rsync file: ${INC_FILE}"
 		rm "$INC_FILE" || log "Failed to delete old incomplete rsync file: ${INC_FILE}"

@@ -4,13 +4,15 @@ PATH=$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 LOGFILE_NAME="PVEReplicate.log"
 INCOMPLETE_FILE_DAYS=1
 
+SCRIPT="$0"
+
 SRC="$1"
 DST="$2"
 
 usage() {
-	echo "PVEReplicate take latest successful backup for each VM and replicates it to a specified destination."
+	echo "$SCRIPT takes the latest successful backup for each VM and replicates it to a specified destination."
        	echo "Usage:"
-	echo "  PVEReplicate /mnt/pve/CephFS/dump /mnt/pve/ioSafe/dump"
+	echo "  $SCRIPT /mnt/pve/CephFS/dump /mnt/pve/ioSafe/dump"
 	exit 1
 }
 
@@ -122,7 +124,15 @@ SELECTED=$(select_backups)
 
 while IFS= read -r FILES; do
 	log "Replicating:"
-	rsync -v $FILES "$DST/" 2>&1 | sed -E '/^$/d' | tee -a "$LOGFILE_SRC" "$LOGFILE_DST"
+	#rsync -v $FILES "$DST/" 2>&1 | sed -E '/^$/d' | tee -a "$LOGFILE_SRC" "$LOGFILE_DST" 
+	RSYNC_OUTPUT=$(rsync -v $FILES "$DST/" 2>&1 | sed -E '/^$/d' | tee -a "$LOGFILE_SRC" "$LOGFILE_DST")
+	RSYNC_ERRORCODE=$?
+	if [ $RSYNC_ERRORCODE -ne 0 ]; then
+		log "RSYNC FAILURE! Error code: $RSYNC_ERRORCODE"
+		echo "$SCRIPT rsync failed with error code: $RSYNC_ERRORCODE"
+		echo
+		echo "$RSYNC_OUTPUT"
+	fi
 	log
 done <<< "$SELECTED"
 

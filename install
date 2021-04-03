@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+DIR=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+
+BASH_PROFILE="/etc/profile.d/parkdale.sh"
+PVE_CRON="/etc/pve/parkdale.cron"
+DUMP_CEPH="/mnt/pve/CephFS/dump"
+DUMP_VMBACKUP="/mnt/pve/VMBackup/dump"
+DUMP_IOSAFE="/mnt/pve/ioSafe/dump"
+LINK_PVE_CRON="/etc/cron.d/parkdale"
+VZCLEAN="/root/VZClean"
+
+cat <<-EOF > "$BASH_PROFILE"
+	#!/usr/bin/env bash
+
+	alias ll="ls -l --color=auto"
+EOF
+echo "Created $BASH_PROFILE :"
+cat "$BASH_PROFILE"
+echo
+echo
+
+[ ! -d "$DUMP_CEPH" ] && echo "Directory $DUMP_CEPH does not exist. Exiting" && exit 1
+[ ! -d "$DUMP_VMBACKUP" ] && echo "Directory $DUMP_VMBACKUP does not exist. Exiting" && exit 1
+[ ! -d "$DUMP_IOSAFE" ] && echo "Directory $DUMP_IOSAFE does not exist. Exiting" && exit 1
+
+[ ! -d "VZCLEAN" ] && echo "Directory $VZCLEAN does not exist. Exiting." && exit 1
+
+cat <<-EOF > "$PVE_CRON"
+	PATH="$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+	# minute (0-59),
+	# |  hour (0-23),
+	# |  |   day of the month (1-31),
+	# |  |   |   month of the year (1-12),
+	# |  |   |   |   day of the week (0-6 with 0=Sunday).
+	# |  |   |   |   |   user   commands
+	  0  9   *   *   *   root   $DIR/pve_replicate /mnt/pve/CephFS/dump/ /mnt/pve/ioSafe/dump/
+	  0 15   *   *   0   root   $DIR/pve_replicate /mnt/pve/CephFS/dump/ /mnt/pve/VMBackup/dump/
+	*/5  *   *   *   *   root   $DIR/pve_run_on_single_node /root/VZClean/vzclean --min 20 /mnt/pve/CephFS/dump
+EOF
+[ -e "$LINK_PVE_CRON" ] || ln -s "$PVE_CRON" "$LINK_PVE_CRON"
+echo "Created $PVE_CRON :"
+cat "$PVE_CRON"

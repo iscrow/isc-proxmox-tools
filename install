@@ -23,7 +23,7 @@ echo
 [ ! -d "$DUMP_VMBACKUP" ] && echo "Directory $DUMP_VMBACKUP does not exist. Exiting" && exit 1
 [ ! -d "$DUMP_IOSAFE" ] && echo "Directory $DUMP_IOSAFE does not exist. Exiting" && exit 1
 
-[ ! -d "VZCLEAN" ] && echo "Directory $VZCLEAN does not exist. Exiting." && exit 1
+[ ! -d "$VZCLEAN" ] && echo "Directory $VZCLEAN does not exist. Exiting." && exit 1
 
 cat <<-EOF > "$PVE_CRON"
 	PATH="$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
